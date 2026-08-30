@@ -9,7 +9,15 @@ Run locally:   python app.py
 Deploy:        push this file + checkpoints/ + requirements.txt to a
                Hugging Face Space (Gradio SDK). Use git-lfs for the
                checkpoint files (~45MB each).
+NOTE: `import spaces` MUST be the first import, before torch, or
+ZeroGPU's CUDA patching doesn't apply correctly. This only matters on
+Hugging Face Spaces with ZeroGPU hardware -- the `spaces` package is a
+no-op on any other environment (e.g. running this locally), so
+`@spaces.GPU` is safe to leave in even when running on your own CUDA
+machine or CPU-only.
 """
+ 
+import spaces
 
 import torch
 import torch.nn.functional as F
