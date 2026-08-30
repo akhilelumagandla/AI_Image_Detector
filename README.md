@@ -1,9 +1,6 @@
-# AI-Generated Image Detector — Cross-Generator Generalization
+# AI Generated Image Detector - Cross Generator Generalization
 
-**Live demo:** [PASTE YOUR HF SPACE URL HERE ONCE LIVE — see DEPLOYMENT.md]
-*(Space runs on free CPU hardware and sleeps after inactivity — first
-request after a while may take ~30-60s to wake up. This is normal, not
-a bug.)*
+**Live demo:** https://huggingface.co/spaces/akhil289/AI_image_detector
 
 A two-stage image classifier that detects whether an image is real or
 AI-generated, and — if flagged as fake — identifies which generator
