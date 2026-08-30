@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Model weights - NOT tracked in the GitHub repo.
+# The Hugging Face Space repo tracks these separately via git-lfs
+# (see DEPLOYMENT.md). Keeping them out of GitHub keeps clone times
+# fast and avoids LFS billing on a repo that doesn't need to serve them.
+checkpoints/
+*.pt
+*.pth
+
+# Sample/export artifacts
+samples/
+
+# HF datasets cache if it ever gets created inside the repo folder
+.cache/
+
+# OS / editor
+.DS_Store
+.vscode/
+*.log

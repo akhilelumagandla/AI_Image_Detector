@@ -1,0 +1,5 @@
+torch>=2.0.0
+torchvision>=0.15.0
+gradio>=4.19.0
+datasets>=2.14.0
+pillow>=9.5.0
