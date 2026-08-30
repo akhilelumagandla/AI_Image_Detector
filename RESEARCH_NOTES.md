@@ -1,9 +1,9 @@
-# Research Notes — Ablation, Diagnostics & Design Decisions
+# Research Notes : Ablation, Diagnostics & Design Decisions
 
 ## Dataset & splits
 
 **Binary detector** (`build_splits` in `dataset.py`): Midjourney and VQDM
-are held out 100% from train/val — never seen until final evaluation.
+are held out 100% from train/val. They are never seen until final evaluation.
 
 | Pool | Split |
 |---|---|
@@ -15,30 +15,30 @@ are held out 100% from train/val — never seen until final evaluation.
 - `test_crossgen` = Midjourney + VQDM + real → "do we generalize to a generator never seen at all?"
 
 **Multiclass generator-ID model** (`build_multiclass_splits`): all 9
-classes (real + 8 generators) are seen in training — no held-out concept,
+classes (real + 8 generators) are seen in training. No held-out concept,
 since this model's job is to name a generator among ones it's been
-shown. Real class is capped to roughly the average per-generator fake
+shown. Real class is capped to roughly the average per generator fake
 count before splitting, so training isn't dominated by a much larger
 real pool.
 
 ## Architecture
 
 - Backbone: ResNet18, ImageNet-pretrained.
-- **ResNet50 was deliberately ruled out.** The 5-run ablation below shows
+- **ResNet50 was deliberately ruled out.** The 5 run ablation below shows
   the ceiling is about *what signal* the model learns (generator
   fingerprints vs. general artifacts), not about capacity. A bigger
-  backbone would likely just memorize seen-generator fingerprints more
-  precisely — helping in-dist, possibly hurting cross-gen further.
+  backbone would likely just memorize seen generator fingerprints more
+  precisely, helping in_dist, possibly hurting cross_gen further.
 - Partial freeze: `conv1, bn1, layer1, layer2` frozen (generic,
   ImageNet-transferable features); `layer3, layer4, fc` trainable. This
   is the best middle ground found between full freeze (underfits, caps
-  at ~70%) and full fine-tune (~90% in-dist / ~47% cross-gen — high
-  in-dist accuracy that's an illusion, since the extra capacity gets
+  at ~70%) and full fine-tune (~90% in_dist / ~47% cross_gen — high
+  in_dist accuracy that's an illusion, since the extra capacity gets
   spent memorizing generator fingerprints).
 - Discriminative learning rates: head `3e-4`, backbone `1e-5`, Adam +
   cosine annealing.
 
-## Augmentation — different strategies per model, on purpose
+## Augmentation - different strategies per model, on purpose
 
 | | Binary detector | Generator-ID model |
 |---|---|---|
@@ -57,7 +57,7 @@ intermediate resize + random interpolation kernel before the final
 224×224 resize, to combat a specific resolution-artifact hypothesis (see
 Diagnostics below).
 
-## Ablation results — binary detector (5 runs)
+## Ablation results - binary detector (5 runs)
 
 | Run | Config | In-dist acc | Cross-gen acc | Gap |
 |---|---|---|---|---|
@@ -68,23 +68,23 @@ Diagnostics below).
 Cross-generator accuracy is stuck in the **0.47–0.51 band across all 5
 runs**, regardless of freeze strategy, augmentation strength, or epoch
 count. Midjourney and VQDM recall specifically sit around **~0.36** in
-every run. This is treated as a defensible, complete finding — four
+every run. This is treated as a defensible, complete finding four
 controlled data points is enough; further tuning on this axis has
 diminishing returns.
 
-**Open item:** SD14 (generator id 5) is missing from the in-distribution
-eval breakdown printed by `eval.py`. Not yet root-caused.
+**Open item:** SD14 (generator id 5) is missing from the in_distribution
+eval breakdown printed by `eval.py`. Not yet root caused.
 
 ## Diagnostics (`diagnoise.py`)
 
 **A. Native resolution check.** Investigates whether the model is partly
-keying on resize/interpolation artifacts tied to specific native-size →
+keying on resize/interpolation artifacts tied to specific native size →
 224 downsampling ratios seen in training. Midjourney's native resolution
 (1024×1024) is far larger than the seen generators (which top out around
 512×512), so this is a live hypothesis for Midjourney specifically.
-**VQDM is a different story** — its native resolution (256×256) already
-matches ADM/GLIDE, both seen and both detected well — so VQDM's failure
-looks like a genuine artifact-signature difference (vector quantization
+**VQDM is a different story**, its native resolution (256×256) already
+matches ADM/GLIDE, both seen and both detected well. So, VQDM's failure
+looks like a genuine artifact signature difference (vector quantization
 vs. continuous diffusion), not a resolution issue. One fix is not
 expected to solve both.
 
@@ -97,12 +97,12 @@ synthetic" cue.
 
 ## Confusion matrix (`diagnoise_multiclass.py`)
 
-Checks whether visually similar generators (Real / SD15 / Wukong — all
+Checks whether visually similar generators (Real / SD15 / Wukong. All
 photorealistic, and SD15/Wukong both Stable-Diffusion-based) are
 specifically confused with each other, versus confusion being spread
 randomly across unrelated classes. Run `python diagnoise_multiclass.py`
 against the trained multiclass checkpoint to regenerate this table for
-the current model — exact counts depend on the checkpoint in
+the current model, exact counts depend on the checkpoint in
 `checkpoints/resnet_generator_id_best.pt` and aren't reproduced here to
 avoid this document going stale the next time the model is retrained.
 
