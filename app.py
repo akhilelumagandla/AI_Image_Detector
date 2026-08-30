@@ -52,34 +52,36 @@ BINARY_LABELS = {0: "Real", 1: "AI-Generated"}
 GENERATOR_CLASSES = [cid for cid in config.GENERATOR_ID_TO_NAME if cid not in (0, 5)]
 
 
-@torch.no_grad()
+@spaces.GPU
 def predict(image):
     if image is None:
         return {}, {}
-
-    img_tensor = transform(image.convert("RGB")).unsqueeze(0).to(device)
-
-    # Stage 1: real vs fake
-    binary_logits = binary_model(img_tensor)
-    binary_probs = F.softmax(binary_logits, dim=1)[0].cpu()
-    binary_result = {BINARY_LABELS[i]: float(binary_probs[i]) for i in range(2)}
-
-    is_fake = binary_probs.argmax().item() == 1
-    if not is_fake:
-        return binary_result, {}
-
-    # Stage 2: which generator (only runs if stage 1 said "fake")
-    gen_logits = multiclass_model(img_tensor)[0]
-    masked_logits = gen_logits.clone()
-    masked_logits[0] = float("-inf")   # Real -- invalid here
-    masked_logits[5] = float("-inf")   # SD14 -- untrained, zero samples
-    gen_probs = F.softmax(masked_logits, dim=0).cpu()
-
-    gen_result = {
-        config.GENERATOR_ID_TO_NAME[cid]: float(gen_probs[cid])
-        for cid in GENERATOR_CLASSES
-    }
-    return binary_result, gen_result
+ 
+    with torch.no_grad():
+        img_tensor = transform(image.convert("RGB")).unsqueeze(0).to(device)
+ 
+        # Stage 1: real vs fake
+        binary_logits = binary_model(img_tensor)
+        binary_probs = F.softmax(binary_logits, dim=1)[0].cpu()
+        binary_result = {BINARY_LABELS[i]: float(binary_probs[i]) for i in range(2)}
+ 
+        is_fake = binary_probs.argmax().item() == 1
+        if not is_fake:
+            return binary_result, {}
+ 
+        # Stage 2: which generator (only runs if stage 1 said "fake")
+        gen_logits = multiclass_model(img_tensor)[0]
+        masked_logits = gen_logits.clone()
+        masked_logits[0] = float("-inf")   # Real -- invalid here
+        masked_logits[5] = float("-inf")   # SD14 -- untrained, zero samples
+        gen_probs = F.softmax(masked_logits, dim=0).cpu()
+ 
+        gen_result = {
+            config.GENERATOR_ID_TO_NAME[cid]: float(gen_probs[cid])
+            for cid in GENERATOR_CLASSES
+        }
+        return binary_result, gen_result
+ 
 
 
 with gr.Blocks(title="AI Image Detector") as demo:
