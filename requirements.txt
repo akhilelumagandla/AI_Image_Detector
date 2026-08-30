@@ -1,6 +1,5 @@
 torch>=2.0.0
 torchvision>=0.15.0
-gradio==4.44.1
-huggingface_hub<0.26
+gradio==5.27.0
 datasets>=2.14.0
 pillow>=9.5.0
